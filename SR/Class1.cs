@@ -8,7 +8,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
 
-
 namespace SR
 {
     public interface ASignatures
@@ -18,6 +17,7 @@ namespace SR
         string DisConnect();
         string SendMessageWC(string message);
         string SendMessage(string message);
+        string SendMessage(string HostName, int Port, string UserName, string Password, string Exchange, string RoutingKey, string message);
         string ReceiveMessageWC(string queuename);
         string ReceiveMessage(string queuename);
         string MessagesInQueue(string queuename);
@@ -195,6 +195,37 @@ namespace SR
             }
 
             return "OK!";
+        }
+
+        public string SendMessage(string lHostName, int lPort, string lUserName, string lPassword, string lExchange, string lRoutingKey, string lmessage)
+        {
+            try
+            {
+                ConnectionFactory lfactory = new ConnectionFactory()
+                {
+                    HostName = lHostName,
+                    UserName = lUserName,
+                    Password = lPassword,
+                    Port = lPort
+                };
+                
+                using (var lconnection = lfactory.CreateConnection())
+                {
+                    using (var lchanell = lconnection.CreateModel())
+                    {
+                        var lbody = Encoding.UTF8.GetBytes(lmessage);
+                        lchanell.BasicPublish(lExchange, lRoutingKey, null, lbody);
+
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                return e.ToString();
+            }
+
+            return "OK!";        
+        
         }
 
         //RECEIVING
