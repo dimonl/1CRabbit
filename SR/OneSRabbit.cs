@@ -329,7 +329,7 @@ namespace SR
             {
                 return e.ToString();
             }
-        }//AckWS
+        }//AckWС
 
         //
         public string Ack(string queuename)
