@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,7 @@ using System.Runtime;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
+
 
 namespace SR
 {
@@ -18,7 +20,7 @@ namespace SR
         string SendMessageWC(string message);
         string SendMessage(string message);
         string SendMessage(string HostName, int Port, string UserName, string Password, string Exchange, string RoutingKey, string message);
-        string ReceiveMessageWC(string queuename);
+        string ReceiveMessageWC(string queuename, bool isdurable);
         string ReceiveMessage(string queuename);
         string MessagesInQueue(string queuename);
         string Ack(string queuename);
@@ -126,6 +128,7 @@ namespace SR
         //DISCONNECT
         public string DisConnect()
         {
+            
             if (fact != null)
             {
                 chan = null;
@@ -229,26 +232,32 @@ namespace SR
         }
 
         //RECEIVING
-        public string ReceiveMessageWC(string queuename)
+        public string ReceiveMessageWC(string queuename, bool isdurable)
         {
             try
             {
-                    chan.QueueDeclare(queue: queuename,
-                                      durable: false,
-                                      exclusive: false,
-                                      autoDelete: false,
-                                      arguments: null);
+                Dictionary<String, Object> args = new Dictionary<String, Object>();
+                args.Add("prefetch-count", "1");
 
-                    var consumer = new QueueingBasicConsumer(chan);
+                chan.QueueDeclare(queue: queuename,
+                                  durable: isdurable,
+                                  exclusive: false,
+                                  autoDelete: false,
+                                  arguments: args);//null
 
-                    chan.BasicConsume(queuename, autoAck, consumer);
+                //var consumer = new QueueingBasicConsumer(chan);
 
-                    var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
-                    byte[] body = ea.Body;
-                    string message = System.Text.Encoding.UTF8.GetString(body);
+                var data = chan.BasicGet(queuename, false); // BasicConsume(queuename, autoAck, consumer);
+                var message = System.Text.Encoding.UTF8.GetString(data.Body);
+                chan.BasicAck(data.DeliveryTag, false);
 
-                    return message;
-              }
+                /*var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
+                byte[] body = ea.Body;
+                string message = System.Text.Encoding.UTF8.GetString(body);
+                chan.BasicAck(ea.DeliveryTag, false);*/
+
+                return message;
+            }
             catch (Exception e)
             {
                 return e.ToString();
@@ -277,15 +286,18 @@ namespace SR
                                              autoDelete: false,
                                              arguments: null);
 
-                        var consumer = new QueueingBasicConsumer(channel);
-                        
-                        
                         const bool autoAck = false;
-                        channel.BasicConsume(queuename, autoAck, consumer);
 
+                        var data = channel.BasicGet(queuename, autoAck); // BasicConsume(queuename, autoAck, consumer);
+                        var message = System.Text.Encoding.UTF8.GetString(data.Body);
+                        channel.BasicAck(data.DeliveryTag, false);
+
+                        /*var consumer = new QueueingBasicConsumer(channel);
+                        
+                        channel.BasicConsume(queuename, autoAck, consumer);
                         var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
                         byte[] body = ea.Body;
-                        string message = System.Text.Encoding.UTF8.GetString(body);
+                        string message = System.Text.Encoding.UTF8.GetString(body);*/
 
                         return message;
                      }
@@ -355,7 +367,6 @@ namespace SR
                                           autoDelete: false,
                                           arguments: null);
 
-                        //var consumer = new EventingBasicConsumer(channel);
                         var consumer = new QueueingBasicConsumer(chanell);
 
                         chanell.BasicConsume(queuename, autoAck, consumer);
@@ -474,6 +485,5 @@ namespace SR
             return kol;
         }
 
-  
     }
 }
