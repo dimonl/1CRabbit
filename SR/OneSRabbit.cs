@@ -131,6 +131,8 @@ namespace SR
             
             if (fact != null)
             {
+                chan.Close();
+                conn.Close();
                 chan = null;
                 conn = null;
                 fact = null;
