@@ -20,7 +20,7 @@ namespace SR
         string SendMessageWC(string message);
         string SendMessage(string message);
         string SendMessage(string HostName, int Port, string UserName, string Password, string Exchange, string RoutingKey, string message);
-        string ReceiveMessageWC(string queuename, bool isdurable);
+        string ReceiveMessageWC(string queuename);
         string ReceiveMessage(string queuename);
         string MessagesInQueue(string queuename);
         string Ack(string queuename);
@@ -234,30 +234,25 @@ namespace SR
         }
 
         //RECEIVING
-        public string ReceiveMessageWC(string queuename, bool isdurable)
+        public string ReceiveMessageWC(string queuename)
         {
             try
             {
-                Dictionary<String, Object> args = new Dictionary<String, Object>();
-                args.Add("prefetch-count", "1");
+                //Dictionary<String, Object> args = new Dictionary<String, Object>();
+                //args.Add("prefetch-count", "1");
+                         //chanell.QueueDeclare(queue: queuename,
+                        //                  durable: isdurable,
+                        //                  exclusive: false,
+                        //                  autoDelete: false,
+                        //                  arguments: null);//null
 
-                chan.QueueDeclare(queue: queuename,
-                                  durable: isdurable,
-                                  exclusive: false,
-                                  autoDelete: false,
-                                  arguments: args);//null
+                        //var consumer = new QueueingBasicConsumer(chan);
 
-                //var consumer = new QueueingBasicConsumer(chan);
-
-                var data = chan.BasicGet(queuename, false); // BasicConsume(queuename, autoAck, consumer);
-                var message = System.Text.Encoding.UTF8.GetString(data.Body);
-                chan.BasicAck(data.DeliveryTag, false);
-
-                /*var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
-                byte[] body = ea.Body;
-                string message = System.Text.Encoding.UTF8.GetString(body);
-                chan.BasicAck(ea.DeliveryTag, false);*/
-
+                        var data = chan.BasicGet(queuename, false); // BasicConsume(queuename, autoAck, consumer);
+                        var message = System.Text.Encoding.UTF8.GetString(data.Body);
+                        chan.BasicAck(data.DeliveryTag, false);
+                        //chan.Close();
+ 
                 return message;
             }
             catch (Exception e)
