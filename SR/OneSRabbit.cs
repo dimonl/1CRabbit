@@ -51,7 +51,7 @@ namespace SR
     }
 
     [ClassInterface(ClassInterfaceType.AutoDual)]
-    
+
     //public class ArsClass : ASignatures, IInitDone
     public class OneSRabbit : ASignatures, IInitDone
     {
@@ -91,7 +91,7 @@ namespace SR
         private ConnectionFactory fact = null;
         private IConnection conn = null;
         private IModel chan = null;
-        
+
 
         //CONNECT
         public string Connect()
@@ -107,7 +107,7 @@ namespace SR
                           Password = Password,
                           Port = Port
                       };
-                    
+
                     conn = fact.CreateConnection();
 
                     chan = conn.CreateModel();
@@ -119,7 +119,7 @@ namespace SR
                     return e.ToString();
                 }
             }
-            else 
+            else
             {
                 return "Connection already established!";
             }
@@ -128,7 +128,6 @@ namespace SR
         //DISCONNECT
         public string DisConnect()
         {
-            
             if (fact != null)
             {
                 chan.Close();
@@ -152,10 +151,8 @@ namespace SR
             {
                 try
                 {
-
-                   var body = Encoding.UTF8.GetBytes(message);
-                   chan.BasicPublish(Exchange, RoutingKey, null, body);
-                   
+                    Byte[] body = Encoding.UTF8.GetBytes(message);
+                    chan.BasicPublish(Exchange, RoutingKey, null, body);
                 }
                 catch (Exception e)
                 {
@@ -168,13 +165,13 @@ namespace SR
             {
                 return "No active connection!";
             }
-        
+
         }
 
-        public string SendMessage(string message) 
+        public string SendMessage(string message)
         {
 
-            try 
+            try
             {
                 ConnectionFactory factory = new ConnectionFactory()
                 {
@@ -184,19 +181,19 @@ namespace SR
                     Port = Port
                 };
 
-                using (var connection = factory.CreateConnection()) 
+                using (IConnection connection = factory.CreateConnection())
                 {
-                    using (var chanell = connection.CreateModel())
+                    using (IModel chanell = connection.CreateModel())
                     {
-                        var body = Encoding.UTF8.GetBytes(message);
+                        Byte[] body = Encoding.UTF8.GetBytes(message);
                         chanell.BasicPublish(Exchange, RoutingKey, null, body);
-                    
+
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                return e.ToString();                
+                return e.ToString();
             }
 
             return "OK!";
@@ -213,12 +210,12 @@ namespace SR
                     Password = lPassword,
                     Port = lPort
                 };
-                
-                using (var lconnection = lfactory.CreateConnection())
+
+                using (IConnection lconnection = lfactory.CreateConnection())
                 {
-                    using (var lchanell = lconnection.CreateModel())
+                    using (IModel lchanell = lconnection.CreateModel())
                     {
-                        var lbody = Encoding.UTF8.GetBytes(lmessage);
+                        Byte[] lbody = Encoding.UTF8.GetBytes(lmessage);
                         lchanell.BasicPublish(lExchange, lRoutingKey, null, lbody);
 
                     }
@@ -229,8 +226,8 @@ namespace SR
                 return e.ToString();
             }
 
-            return "OK!";        
-        
+            return "OK!";
+
         }
 
         //RECEIVING
@@ -238,21 +235,14 @@ namespace SR
         {
             try
             {
-                //Dictionary<String, Object> args = new Dictionary<String, Object>();
-                //args.Add("prefetch-count", "1");
-                         //chanell.QueueDeclare(queue: queuename,
-                        //                  durable: isdurable,
-                        //                  exclusive: false,
-                        //                  autoDelete: false,
-                        //                  arguments: null);//null
+                BasicGetResult data = chan.BasicGet(queuename, false);
+                // BasicConsume(queuename, autoAck, consumer);
 
-                        //var consumer = new QueueingBasicConsumer(chan);
+                //var message = System.Text.Encoding.UTF8.GetString(data.Body);
+                string message = System.Text.Encoding.UTF8.GetString(data.Body);
 
-                        var data = chan.BasicGet(queuename, false); // BasicConsume(queuename, autoAck, consumer);
-                        var message = System.Text.Encoding.UTF8.GetString(data.Body);
-                        chan.BasicAck(data.DeliveryTag, false);
-                        //chan.Close();
- 
+                chan.BasicAck(data.DeliveryTag, false);
+
                 return message;
             }
             catch (Exception e)
@@ -265,42 +255,22 @@ namespace SR
         {
             try
             {
-                ConnectionFactory factory = new ConnectionFactory()
-                {
-                    UserName = UserName,
-                    Password = Password,
-                    HostName = HostName,
-                    Port = Port
-                };
+                BasicGetResult data = chan.BasicGet(queuename, false);
 
-                using (var connection = factory.CreateConnection())
-                {
-                    using (var channel = connection.CreateModel())
-                    {
-                        channel.QueueDeclare(queue: queuename,
-                                             durable: false,
-                                             exclusive: false,
-                                             autoDelete: false,
-                                             arguments: null);
+                string body = System.Text.Encoding.UTF8.GetString(data.Body);
+                string routing_key = data.RoutingKey;
+                string delivery_tag = data.DeliveryTag.ToString();
 
-                        const bool autoAck = false;
+                string message = "{ '#type': 'jv8:Structure', '#value': [{ 'name': {'#type': 'jxs:string', '#value': 'routing_key'},'Value': {" +
+                                    "'#type': 'jxs:string',	'#value': '" + routing_key + "' }}," +
+                                "{'name': {'#type': 'jxs:string','#value': 'delivery_tag'},	'Value': {'#type': 'jxs:string', '#value': '" + delivery_tag + "' }}," +
+                                "{'name': {'#type': 'jxs:string','#value': 'body'}, 'Value': {'#type': 'jxs:string', '#value': '" + body + "' }}]}";
 
-                        var data = channel.BasicGet(queuename, autoAck); // BasicConsume(queuename, autoAck, consumer);
-                        var message = System.Text.Encoding.UTF8.GetString(data.Body);
-                        channel.BasicAck(data.DeliveryTag, false);
+                chan.BasicAck(data.DeliveryTag, false);
 
-                        /*var consumer = new QueueingBasicConsumer(channel);
-                        
-                        channel.BasicConsume(queuename, autoAck, consumer);
-                        var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
-                        byte[] body = ea.Body;
-                        string message = System.Text.Encoding.UTF8.GetString(body);*/
-
-                        return message;
-                     }
-                }
+                return message;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return e.ToString();
             }
@@ -311,8 +281,8 @@ namespace SR
         {
             try
             {
-                var connection = this.conn;
-                var chanell = this.chan;
+                IConnection connection = this.conn;
+                IModel chanell = this.chan;
                 using (connection)
                 {
                     using (chanell)
@@ -324,10 +294,10 @@ namespace SR
                                           autoDelete: false,
                                           arguments: null);
 
-                        var consumer = new QueueingBasicConsumer(chanell);
+                        QueueingBasicConsumer consumer = new QueueingBasicConsumer(chanell);
 
                         chanell.BasicConsume(queuename, autoAck, consumer);
-                        var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
+                        BasicDeliverEventArgs ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
 
                         chanell.BasicAck(ea.DeliveryTag, false);
                         return "OK!";
@@ -345,7 +315,7 @@ namespace SR
         {
             try
             {
-                var factory = new ConnectionFactory()
+                ConnectionFactory factory = new ConnectionFactory()
                 {
                     HostName = HostName,
                     UserName = UserName,
@@ -353,9 +323,9 @@ namespace SR
                     Port = Port
                 };
 
-                using (var connection = factory.CreateConnection())
+                using (IConnection connection = factory.CreateConnection())
                 {
-                    using (var chanell = connection.CreateModel())
+                    using (IModel chanell = connection.CreateModel())
                     {
 
                         chanell.QueueDeclare(queue: queuename,
@@ -364,10 +334,10 @@ namespace SR
                                           autoDelete: false,
                                           arguments: null);
 
-                        var consumer = new QueueingBasicConsumer(chanell);
+                        QueueingBasicConsumer consumer = new QueueingBasicConsumer(chanell);
 
                         chanell.BasicConsume(queuename, autoAck, consumer);
-                        var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
+                        BasicDeliverEventArgs ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
 
                         chanell.BasicAck(ea.DeliveryTag, false);
                         return "OK!";
@@ -377,7 +347,7 @@ namespace SR
             catch (Exception e)
             {
                 return e.ToString();
-            }     
+            }
         }//Ack
 
 
@@ -393,9 +363,9 @@ namespace SR
                     Port = Port
                 };
 
-                using (var connection = factory.CreateConnection())
+                using (IConnection connection = factory.CreateConnection())
                 {
-                    using (var chanell = connection.CreateModel())
+                    using (IModel chanell = connection.CreateModel())
                     {
                         chanell.QueueDeclare(queue: queuename,
                                           durable: false,
@@ -404,10 +374,10 @@ namespace SR
                                           arguments: null);
 
                         //var consumer = new EventingBasicConsumer(channel);
-                        var consumer = new QueueingBasicConsumer(chanell);
+                        QueueingBasicConsumer consumer = new QueueingBasicConsumer(chanell);
 
                         chanell.BasicConsume(queuename, autoAck, consumer);
-                        var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
+                        BasicDeliverEventArgs ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
 
                         chanell.BasicNack(ea.DeliveryTag, false, false);
                         return "OK!";
@@ -426,14 +396,14 @@ namespace SR
             string kol = "";
             try
             {
-                var connection = this.conn;
-                var chanell = this.chan;
+                IConnection connection = this.conn;
+                IModel chanell = this.chan;
                 using (connection)
                 {
                     using (chanell)
                     {
 
-                        var response = chanell.QueueDeclarePassive(queuename);
+                        QueueDeclareOk response = chanell.QueueDeclarePassive(queuename);
                         kol = response.MessageCount.ToString();
                         response = null;
                     }
@@ -462,12 +432,12 @@ namespace SR
                     Port = Port
                 };
 
-                using (var connection = factory.CreateConnection())
+                using (IConnection connection = factory.CreateConnection())
                 {
-                    using (var chanell = connection.CreateModel())
+                    using (IModel chanell = connection.CreateModel())
                     {
 
-                        var response = chanell.QueueDeclarePassive(queuename);
+                        QueueDeclareOk response = chanell.QueueDeclarePassive(queuename);
                         kol = response.MessageCount.ToString();
                     }
                 }
