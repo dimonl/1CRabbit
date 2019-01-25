@@ -261,10 +261,10 @@ namespace SR
                 string routing_key = data.RoutingKey;
                 string delivery_tag = data.DeliveryTag.ToString();
 
-                string message = "{ '#type': 'jv8:Structure', '#value': [{ 'name': {'#type': 'jxs:string', '#value': 'routing_key'},'Value': {" +
+                string message = "{'#type': 'jv8:Structure', '#value': [{ 'name': {'#type': 'jxs:string', '#value': 'routing_key'},'Value': {" +
                                     "'#type': 'jxs:string',	'#value': '" + routing_key + "' }}," +
                                 "{'name': {'#type': 'jxs:string','#value': 'delivery_tag'},	'Value': {'#type': 'jxs:string', '#value': '" + delivery_tag + "' }}," +
-                                "{'name': {'#type': 'jxs:string','#value': 'body'}, 'Value': {'#type': 'jxs:string', '#value': '" + body + "' }}]}";
+                                "{'name': {'#type': 'jxs:string','#value': 'body'}, 'Value': {'#type': 'jxs:string', '#value': \"" + body + "\" }}]}";
 
                 chan.BasicAck(data.DeliveryTag, false);
 
@@ -408,7 +408,6 @@ namespace SR
                         response = null;
                     }
                 }
-
             }
             catch (Exception e)
             {
@@ -436,12 +435,11 @@ namespace SR
                 {
                     using (IModel chanell = connection.CreateModel())
                     {
-
                         QueueDeclareOk response = chanell.QueueDeclarePassive(queuename);
                         kol = response.MessageCount.ToString();
+                        response = null;
                     }
                 }
-
             }
             catch (Exception e)
             {
