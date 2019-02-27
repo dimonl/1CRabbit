@@ -264,7 +264,7 @@ namespace SR
                 string message = "{'#type': 'jv8:Structure', '#value': [{ 'name': {'#type': 'jxs:string', '#value': 'routing_key'},'Value': {" +
                                     "'#type': 'jxs:string',	'#value': '" + routing_key + "' }}," +
                                 "{'name': {'#type': 'jxs:string','#value': 'delivery_tag'},	'Value': {'#type': 'jxs:string', '#value': '" + delivery_tag + "' }}," +
-                                "{'name': {'#type': 'jxs:string','#value': 'body'}, 'Value': {'#type': 'jxs:string', '#value': \"" + body + "\" }}]}";
+                                "{'name': {'#type': 'jxs:string','#value': 'body'}, 'Value': {'#type': 'jxs:string', '#value': '" + body + "' }}]}";
 
                 chan.BasicAck(data.DeliveryTag, false);
 
