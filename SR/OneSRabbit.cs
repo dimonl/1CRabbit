@@ -8,7 +8,7 @@ using System.Runtime;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
-
+using System.Text.RegularExpressions;
 
 namespace SR
 {
@@ -268,6 +268,12 @@ namespace SR
 
                 chan.BasicAck(data.DeliveryTag, false);
 
+                try
+                {
+                    message = EscapeSymbols(message);
+                }
+                catch { }
+
                 return message;
             }
             catch (Exception e)
@@ -275,6 +281,30 @@ namespace SR
                 return e.ToString();
             }
         }//ReceiveMessage
+
+        private string EscapeSymbols(string input)
+        {
+            string st = input.Replace("\r\n", "").Replace("\t", "");
+            string pattern = "value\": \"(.*?)\"},";
+            
+            MatchCollection matches = Regex.Matches(st, pattern);
+
+            string output = input;
+            string new_val;
+            foreach (Match match in matches)
+            {
+                string val = match.Groups[1].Value;
+                string old_st = "\"";
+                string new_st = @"\" + "\"";
+                if ((val.IndexOf("lue", 0) == -1) && (val != ""))
+                {
+                    new_val = val.Replace(old_st, new_st) + "\r\n";
+                    output = output.Replace(val, val.Replace(old_st, new_st));
+                }
+            }
+
+            return output;
+        }
 
 
         public string AckWC(string queuename)
