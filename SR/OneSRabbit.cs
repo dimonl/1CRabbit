@@ -295,11 +295,12 @@ namespace SR
             {
                 string val = match.Groups[1].Value;
                 string old_st = "\"";
-                string new_st = @"\" + "\"";
+                string new_st = @"\" + "\""; 
                 if ((val.IndexOf("lue", 0) == -1) && (val != ""))
                 {
-                    new_val = val.Replace(old_st, new_st) + "\r\n";
-                    output = output.Replace(val, val.Replace(old_st, new_st));
+                    new_val = val.Replace(@"\", @"\\");
+                    output = output.Replace(val, new_val.Replace(old_st, new_st));
+                    //output = output.Replace(val, val.Replace(old_st, new_st));
                 }
             }
 
