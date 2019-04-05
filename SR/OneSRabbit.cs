@@ -284,8 +284,8 @@ namespace SR
 
         private string EscapeSymbols(string input)
         {
-            string st = input.Replace("\r\n", "").Replace("\t", "");
-            string pattern = "value\": \"(.*?)\"},";
+            string st = input.Replace("\r\n", "").Replace("\t", "").Replace("},", "},\r\n");
+            string pattern = "value\": \"(.*?)\"}";
             
             MatchCollection matches = Regex.Matches(st, pattern);
 
