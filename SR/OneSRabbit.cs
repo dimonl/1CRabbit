@@ -92,6 +92,8 @@ namespace SR
         private IConnection conn = null;
         private IModel chan = null;
 
+        private IBasicProperties props = null;
+
 
         //CONNECT
         public string Connect()
@@ -101,16 +103,19 @@ namespace SR
                 try
                 {
                     fact = new ConnectionFactory()
-                      {
-                          HostName = HostName,
-                          UserName = UserName,
-                          Password = Password,
-                          Port = Port
-                      };
+                    {
+                        HostName = HostName,
+                        UserName = UserName,
+                        Password = Password,
+                        Port = Port
+                    };
 
                     conn = fact.CreateConnection();
 
                     chan = conn.CreateModel();
+
+                    props.DeliveryMode = 2;
+                    props.Persistent = true;
 
                     return "Connection established!";
                 }
@@ -135,6 +140,7 @@ namespace SR
                 chan = null;
                 conn = null;
                 fact = null;
+                props = null;
                 return "Connection closed!";
             }
             else
@@ -152,7 +158,7 @@ namespace SR
                 try
                 {
                     Byte[] body = Encoding.UTF8.GetBytes(message);
-                    chan.BasicPublish(Exchange, RoutingKey, null, body);
+                    chan.BasicPublish(Exchange, RoutingKey, props, body);
                 }
                 catch (Exception e)
                 {
@@ -186,7 +192,7 @@ namespace SR
                     using (IModel chanell = connection.CreateModel())
                     {
                         Byte[] body = Encoding.UTF8.GetBytes(message);
-                        chanell.BasicPublish(Exchange, RoutingKey, null, body);
+                        chanell.BasicPublish(Exchange, RoutingKey, props, body);
 
                     }
                 }
@@ -216,7 +222,7 @@ namespace SR
                     using (IModel lchanell = lconnection.CreateModel())
                     {
                         Byte[] lbody = Encoding.UTF8.GetBytes(lmessage);
-                        lchanell.BasicPublish(lExchange, lRoutingKey, null, lbody);
+                        lchanell.BasicPublish(lExchange, lRoutingKey, props, lbody);
 
                     }
                 }
@@ -286,7 +292,7 @@ namespace SR
         {
             string st = input.Replace("\r\n", "").Replace("\t", "").Replace("},", "},\r\n");
             string pattern = "value\": \"(.*?)\"}";
-            
+
             MatchCollection matches = Regex.Matches(st, pattern);
 
             string output = input;
@@ -295,7 +301,7 @@ namespace SR
             {
                 string val = match.Groups[1].Value;
                 string old_st = "\"";
-                string new_st = @"\" + "\""; 
+                string new_st = @"\" + "\"";
                 if ((val.IndexOf("lue", 0) == -1) && (val != ""))
                 {
                     new_val = val.Replace(@"\", @"\\");
@@ -320,7 +326,7 @@ namespace SR
                     {
 
                         chanell.QueueDeclare(queue: queuename,
-                                          durable: false,
+                                          durable: true,
                                           exclusive: false,
                                           autoDelete: false,
                                           arguments: null);
@@ -360,7 +366,7 @@ namespace SR
                     {
 
                         chanell.QueueDeclare(queue: queuename,
-                                          durable: false,
+                                          durable: true,
                                           exclusive: false,
                                           autoDelete: false,
                                           arguments: null);
@@ -399,7 +405,7 @@ namespace SR
                     using (IModel chanell = connection.CreateModel())
                     {
                         chanell.QueueDeclare(queue: queuename,
-                                          durable: false,
+                                          durable: true,
                                           exclusive: false,
                                           autoDelete: false,
                                           arguments: null);
