@@ -108,7 +108,13 @@ namespace SR
                         UserName = UserName,
                         Password = Password,
                         Port = Port
+
                     };
+
+                    fact.RequestedHeartbeat = 10;
+                    fact.RequestedConnectionTimeout = 5000;
+
+      connectionFactory.setAutomaticRecoveryEnabled(true);
 
                     conn = fact.CreateConnection();
 
@@ -186,6 +192,8 @@ namespace SR
                     Password = Password,
                     Port = Port
                 };
+                factory.RequestedHeartbeat = 10;
+                factory.RequestedConnectionTimeout = 5000;
 
                 using (IConnection connection = factory.CreateConnection())
                 {
@@ -216,6 +224,8 @@ namespace SR
                     Password = lPassword,
                     Port = lPort
                 };
+                lfactory.RequestedHeartbeat = 10;
+                lfactory.RequestedConnectionTimeout = 5000;
 
                 using (IConnection lconnection = lfactory.CreateConnection())
                 {
@@ -359,6 +369,8 @@ namespace SR
                     Password = Password,
                     Port = Port
                 };
+                factory.RequestedHeartbeat = 10;
+                factory.RequestedConnectionTimeout = 5000;               
 
                 using (IConnection connection = factory.CreateConnection())
                 {
@@ -399,6 +411,9 @@ namespace SR
                     Password = Password,
                     Port = Port
                 };
+
+                factory.RequestedHeartbeat = 10;
+                factory.RequestedConnectionTimeout = 5000;
 
                 using (IConnection connection = factory.CreateConnection())
                 {
@@ -467,6 +482,9 @@ namespace SR
                     HostName = HostName,
                     Port = Port
                 };
+
+                factory.RequestedHeartbeat = 10;
+                factory.RequestedConnectionTimeout = 5000;
 
                 using (IConnection connection = factory.CreateConnection())
                 {
