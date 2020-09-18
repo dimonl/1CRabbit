@@ -118,6 +118,7 @@ namespace SR
 
                     chan = conn.CreateModel();
 
+                    props = chan.CreateBasicProperties();
                     props.DeliveryMode = 2;
                     props.Persistent = true;
 
