@@ -114,8 +114,6 @@ namespace SR
                     fact.RequestedHeartbeat = 10;
                     fact.RequestedConnectionTimeout = 5000;
 
-      connectionFactory.setAutomaticRecoveryEnabled(true);
-
                     conn = fact.CreateConnection();
 
                     chan = conn.CreateModel();
